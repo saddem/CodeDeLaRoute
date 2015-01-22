@@ -1,4 +1,4 @@
-Symfony Standard Edition test3
+Symfony Standard Edition test5
 ========================
 
 Welcome to the Symfony Standard Edition - a fully-functional Symfony2
