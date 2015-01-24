@@ -121,10 +121,12 @@ class Form implements \IteratorAggregate, FormInterface
     private $extraData = array();
 
     /**
-     * Returns the transformation failure generated during submission, if any
-     * @var TransformationFailedException|null
+     * Whether the data in model, normalized and view format is
+     * synchronized. Data may not be synchronized if transformation errors
+     * occur.
+     * @var bool
      */
-    private $transformationFailure;
+    private $synchronized = true;
 
     /**
      * Whether the form's data has been initialized.
@@ -632,7 +634,7 @@ class Form implements \IteratorAggregate, FormInterface
                 $viewData = $this->normToView($normData);
             }
         } catch (TransformationFailedException $e) {
-            $this->transformationFailure = $e;
+            $this->synchronized = false;
 
             // If $viewData was not yet set, set it to $submittedData so that
             // the erroneous data is accessible on the form.
@@ -709,15 +711,7 @@ class Form implements \IteratorAggregate, FormInterface
      */
     public function isSynchronized()
     {
-        return null === $this->transformationFailure;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getTransformationFailure()
-    {
-        return $this->transformationFailure;
+        return $this->synchronized;
     }
 
     /**
@@ -814,7 +808,7 @@ class Form implements \IteratorAggregate, FormInterface
      *
      * This method should only be used to help debug a form.
      *
-     * @param int $level The indentation level (used internally)
+     * @param int     $level The indentation level (used internally)
      *
      * @return string A string representation of all errors
      *
@@ -1015,7 +1009,7 @@ class Form implements \IteratorAggregate, FormInterface
     /**
      * Returns the number of form children (implements the \Countable interface).
      *
-     * @return int The number of embedded form children
+     * @return int     The number of embedded form children
      */
     public function count()
     {
@@ -1055,22 +1049,12 @@ class Form implements \IteratorAggregate, FormInterface
      *
      * @param mixed $value The value to transform
      *
-     * @throws TransformationFailedException If the value cannot be transformed to "normalized" format
-     *
      * @return mixed
      */
     private function modelToNorm($value)
     {
-        try {
-            foreach ($this->config->getModelTransformers() as $transformer) {
-                $value = $transformer->transform($value);
-            }
-        } catch (TransformationFailedException $exception) {
-            throw new TransformationFailedException(
-                'Unable to transform value for property path "'.$this->getPropertyPath().'": '.$exception->getMessage(),
-                $exception->getCode(),
-                $exception
-            );
+        foreach ($this->config->getModelTransformers() as $transformer) {
+            $value = $transformer->transform($value);
         }
 
         return $value;
@@ -1081,24 +1065,14 @@ class Form implements \IteratorAggregate, FormInterface
      *
      * @param string $value The value to reverse transform
      *
-     * @throws TransformationFailedException If the value cannot be transformed to "model" format
-     *
      * @return mixed
      */
     private function normToModel($value)
     {
-        try {
-            $transformers = $this->config->getModelTransformers();
+        $transformers = $this->config->getModelTransformers();
 
-            for ($i = count($transformers) - 1; $i >= 0; --$i) {
-                $value = $transformers[$i]->reverseTransform($value);
-            }
-        } catch (TransformationFailedException $exception) {
-            throw new TransformationFailedException(
-                'Unable to reverse value for property path "'.$this->getPropertyPath().'": '.$exception->getMessage(),
-                $exception->getCode(),
-                $exception
-            );
+        for ($i = count($transformers) - 1; $i >= 0; --$i) {
+            $value = $transformers[$i]->reverseTransform($value);
         }
 
         return $value;
@@ -1108,8 +1082,6 @@ class Form implements \IteratorAggregate, FormInterface
      * Transforms the value if a value transformer is set.
      *
      * @param mixed $value The value to transform
-     *
-     * @throws TransformationFailedException If the value cannot be transformed to "view" format
      *
      * @return mixed
      */
@@ -1124,16 +1096,8 @@ class Form implements \IteratorAggregate, FormInterface
             return null === $value || is_scalar($value) ? (string) $value : $value;
         }
 
-        try {
-            foreach ($this->config->getViewTransformers() as $transformer) {
-                $value = $transformer->transform($value);
-            }
-        } catch (TransformationFailedException $exception) {
-            throw new TransformationFailedException(
-                'Unable to transform value for property path "'.$this->getPropertyPath().'": '.$exception->getMessage(),
-                $exception->getCode(),
-                $exception
-            );
+        foreach ($this->config->getViewTransformers() as $transformer) {
+            $value = $transformer->transform($value);
         }
 
         return $value;
@@ -1143,8 +1107,6 @@ class Form implements \IteratorAggregate, FormInterface
      * Reverse transforms a value if a value transformer is set.
      *
      * @param string $value The value to reverse transform
-     *
-     * @throws TransformationFailedException If the value cannot be transformed to "normalized" format
      *
      * @return mixed
      */
@@ -1156,16 +1118,8 @@ class Form implements \IteratorAggregate, FormInterface
             return '' === $value ? null : $value;
         }
 
-        try {
-            for ($i = count($transformers) - 1; $i >= 0; --$i) {
-                $value = $transformers[$i]->reverseTransform($value);
-            }
-        } catch (TransformationFailedException $exception) {
-            throw new TransformationFailedException(
-                'Unable to reverse value for property path "'.$this->getPropertyPath().'": '.$exception->getMessage(),
-                $exception->getCode(),
-                $exception
-            );
+        for ($i = count($transformers) - 1; $i >= 0; --$i) {
+            $value = $transformers[$i]->reverseTransform($value);
         }
 
         return $value;

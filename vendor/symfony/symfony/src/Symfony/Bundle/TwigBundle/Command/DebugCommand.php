@@ -27,10 +27,7 @@ class DebugCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('debug:twig')
-            ->setAliases(array(
-                'twig:debug',
-            ))
+            ->setName('twig:debug')
             ->setDefinition(array(
                 new InputArgument('filter', InputArgument::OPTIONAL, 'Show details for all entries matching this filter'),
                 new InputOption('format', null, InputOption::VALUE_REQUIRED, 'Output format: text or json', 'text'),

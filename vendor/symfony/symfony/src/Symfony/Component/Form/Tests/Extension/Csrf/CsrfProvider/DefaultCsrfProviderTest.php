@@ -49,7 +49,7 @@ class DefaultCsrfProviderTest extends \PHPUnit_Framework_TestCase
     {
         session_id('touti');
 
-        if (PHP_VERSION_ID < 50400) {
+        if (!version_compare(PHP_VERSION, '5.4', '>=')) {
             $this->markTestSkipped('This test requires PHP >= 5.4');
         }
 

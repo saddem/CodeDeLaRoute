@@ -1,0 +1,4 @@
+services:
+#    saddem_code_route.example:
+#        class: Saddem\CodeRouteBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]

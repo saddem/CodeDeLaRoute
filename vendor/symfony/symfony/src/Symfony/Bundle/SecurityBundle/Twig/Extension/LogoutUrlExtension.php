@@ -47,7 +47,6 @@ class LogoutUrlExtension extends \Twig_Extension
      * Generate the relative logout URL for the firewall.
      *
      * @param string $key The firewall key
-     *
      * @return string The relative logout URL
      */
     public function getLogoutPath($key)
@@ -59,7 +58,6 @@ class LogoutUrlExtension extends \Twig_Extension
      * Generate the absolute logout URL for the firewall.
      *
      * @param string $key The firewall key
-     *
      * @return string The absolute logout URL
      */
     public function getLogoutUrl($key)

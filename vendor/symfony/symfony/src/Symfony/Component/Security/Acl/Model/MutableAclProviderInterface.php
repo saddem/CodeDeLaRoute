@@ -21,11 +21,9 @@ interface MutableAclProviderInterface extends AclProviderInterface
     /**
      * Creates a new ACL for the given object identity.
      *
-     * @param ObjectIdentityInterface $oid
-     *
      * @throws AclAlreadyExistsException when there already is an ACL for the given
-     *                                       object identity
-     *
+     *                                   object identity
+     * @param ObjectIdentityInterface $oid
      * @return MutableAclInterface
      */
     public function createAcl(ObjectIdentityInterface $oid);

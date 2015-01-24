@@ -27,21 +27,6 @@ class DefinitionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array('foo'), $def->getArguments(), '__construct() takes an optional array of arguments as its second argument');
     }
 
-    /**
-     * @covers Symfony\Component\DependencyInjection\Definition::setFactory
-     * @covers Symfony\Component\DependencyInjection\Definition::getFactory
-     */
-    public function testSetGetFactory()
-    {
-        $def = new Definition('stdClass');
-
-        $this->assertSame($def, $def->setFactory('foo'), '->setFactory() implements a fluent interface');
-        $this->assertEquals('foo', $def->getFactory(), '->getFactory() returns the factory');
-
-        $def->setFactory('Foo::bar');
-        $this->assertEquals(array('Foo', 'bar'), $def->getFactory(), '->setFactory() converts string static method call to the array');
-    }
-
     public function testSetGetFactoryClass()
     {
         $def = new Definition('stdClass');

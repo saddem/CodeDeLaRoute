@@ -48,11 +48,4 @@ interface MetadataInterface extends LegacyMetadataInterface
      * @see TraversalStrategy
      */
     public function getTraversalStrategy();
-
-    /**
-     * Returns all constraints of this element.
-     *
-     * @return Constraint[] A list of Constraint instances
-     */
-    public function getConstraints();
 }

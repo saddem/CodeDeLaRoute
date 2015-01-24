@@ -96,7 +96,7 @@ EOF
             } elseif (TraceableUrlMatcher::ROUTE_MATCHES == $trace['level']) {
                 $output->writeln(sprintf('<fg=green>Route "%s" matches</>', $trace['name']));
 
-                $routerDebugcommand = $this->getApplication()->find('debug:router');
+                $routerDebugcommand = $this->getApplication()->find('router:debug');
                 $output->writeln('');
                 $routerDebugcommand->run(new ArrayInput(array('name' => $trace['name'])), $output);
 

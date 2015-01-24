@@ -20,9 +20,9 @@ class XmlFileLoader extends FileLoader
     /**
      * An array of SimpleXMLElement instances.
      *
-     * @var \SimpleXMLElement[]|null
+     * @var \SimpleXMLElement[]
      */
-    protected $classes;
+    protected $classes = null;
 
     /**
      * {@inheritdoc}

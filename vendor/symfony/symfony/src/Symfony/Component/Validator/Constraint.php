@@ -12,7 +12,6 @@
 namespace Symfony\Component\Validator;
 
 use Symfony\Component\Validator\Exception\ConstraintDefinitionException;
-use Symfony\Component\Validator\Exception\InvalidArgumentException;
 use Symfony\Component\Validator\Exception\InvalidOptionsException;
 use Symfony\Component\Validator\Exception\MissingOptionsException;
 
@@ -24,8 +23,6 @@ use Symfony\Component\Validator\Exception\MissingOptionsException;
  * validating this class, option or getter result successfully.
  *
  * Constraint instances are immutable and serializable.
- *
- * @property array $groups The groups that the constraint belongs to
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
@@ -52,38 +49,9 @@ abstract class Constraint
     const PROPERTY_CONSTRAINT = 'property';
 
     /**
-     * Maps error codes to the names of their constants
      * @var array
      */
-    protected static $errorNames = array();
-
-    /**
-     * Domain-specific data attached to a constraint
-     * @var mixed
-     */
-    public $payload;
-
-    /**
-     * Returns the name of the given error code.
-     *
-     * @param int $errorCode The error code
-     *
-     * @return string The name of the error code
-     *
-     * @throws InvalidArgumentException If the error code does not exist
-     */
-    public static function getErrorName($errorCode)
-    {
-        if (!isset(static::$errorNames[$errorCode])) {
-            throw new InvalidArgumentException(sprintf(
-                'The error code "%s" does not exist for constraint of type "%s".',
-                $errorCode,
-                get_called_class()
-            ));
-        }
-
-        return static::$errorNames[$errorCode];
-    }
+    public $groups = array(self::DEFAULT_GROUP);
 
     /**
      * Initializes the constraint with options.
@@ -118,10 +86,6 @@ abstract class Constraint
     {
         $invalidOptions = array();
         $missingOptions = array_flip((array) $this->getRequiredOptions());
-        $knownOptions = get_object_vars($this);
-
-        // The "groups" option is added to the object lazily
-        $knownOptions['groups'] = true;
 
         if (is_array($options) && count($options) >= 1 && isset($options['value']) && !property_exists($this, 'value')) {
             $options[$this->getDefaultOption()] = $options['value'];
@@ -130,14 +94,14 @@ abstract class Constraint
 
         if (is_array($options) && count($options) > 0 && is_string(key($options))) {
             foreach ($options as $option => $value) {
-                if (array_key_exists($option, $knownOptions)) {
+                if (property_exists($this, $option)) {
                     $this->$option = $value;
                     unset($missingOptions[$option]);
                 } else {
                     $invalidOptions[] = $option;
                 }
             }
-        } elseif (null !== $options && !(is_array($options) && count($options) === 0)) {
+        } elseif (null !== $options && ! (is_array($options) && count($options) === 0)) {
             $option = $this->getDefaultOption();
 
             if (null === $option) {
@@ -146,7 +110,7 @@ abstract class Constraint
                 );
             }
 
-            if (array_key_exists($option, $knownOptions)) {
+            if (property_exists($this, $option)) {
                 $this->$option = $options;
                 unset($missingOptions[$option]);
             } else {
@@ -167,56 +131,15 @@ abstract class Constraint
                 array_keys($missingOptions)
             );
         }
+
+        $this->groups = (array) $this->groups;
     }
 
     /**
-     * Sets the value of a lazily initialized option.
-     *
-     * Corresponding properties are added to the object on first access. Hence
-     * this method will be called at most once per constraint instance and
-     * option name.
-     *
-     * @param string $option The option name
-     * @param mixed  $value  The value to set
-     *
-     * @throws InvalidOptionsException If an invalid option name is given
+     * Unsupported operation.
      */
     public function __set($option, $value)
     {
-        if ('groups' === $option) {
-            $this->groups = (array) $value;
-
-            return;
-        }
-
-        throw new InvalidOptionsException(sprintf('The option "%s" does not exist in constraint %s', $option, get_class($this)), array($option));
-    }
-
-    /**
-     * Returns the value of a lazily initialized option.
-     *
-     * Corresponding properties are added to the object on first access. Hence
-     * this method will be called at most once per constraint instance and
-     * option name.
-     *
-     * @param string $option The option name
-     *
-     * @return mixed The value of the option
-     *
-     * @throws InvalidOptionsException If an invalid option name is given
-     *
-     * @internal This method should not be used or overwritten in userland code.
-     *
-     * @since 2.6
-     */
-    public function __get($option)
-    {
-        if ('groups' === $option) {
-            $this->groups = array(self::DEFAULT_GROUP);
-
-            return $this->groups;
-        }
-
         throw new InvalidOptionsException(sprintf('The option "%s" does not exist in constraint %s', $option, get_class($this)), array($option));
     }
 
@@ -286,31 +209,12 @@ abstract class Constraint
      * This method should return one or more of the constants
      * Constraint::CLASS_CONSTRAINT and Constraint::PROPERTY_CONSTRAINT.
      *
-     * @return string|array One or more constant values
+     * @return string|array  One or more constant values
      *
      * @api
      */
     public function getTargets()
     {
         return self::PROPERTY_CONSTRAINT;
-    }
-
-    /**
-     * Optimizes the serialized value to minimize storage space.
-     *
-     * @return array The properties to serialize
-     *
-     * @internal This method may be replaced by an implementation of
-     *           {@link \Serializable} in the future. Please don't use or
-     *           overwrite it.
-     *
-     * @since 2.6
-     */
-    public function __sleep()
-    {
-        // Initialize "groups" option if it is not set
-        $this->groups;
-
-        return array_keys(get_object_vars($this));
     }
 }

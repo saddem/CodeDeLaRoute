@@ -50,6 +50,7 @@ class CollectionValidator extends ConstraintValidator
         // remove the initialize() method and pass the context as last argument
         // to validate() instead.
         $context = $this->context;
+        $group = $context->getGroup();
 
         foreach ($constraint->fields as $field => $fieldConstraint) {
             // bug fix issue #2779
@@ -62,10 +63,10 @@ class CollectionValidator extends ConstraintValidator
                         $context->getValidator()
                             ->inContext($context)
                             ->atPath('['.$field.']')
-                            ->validate($value[$field], $fieldConstraint->constraints);
+                            ->validate($value[$field], $fieldConstraint->constraints, $group);
                     } else {
                         // 2.4 API
-                        $context->validateValue($value[$field], $fieldConstraint->constraints, '['.$field.']');
+                        $context->validateValue($value[$field], $fieldConstraint->constraints, '['.$field.']', $group);
                     }
                 }
             } elseif (!$fieldConstraint instanceof Optional && !$constraint->allowMissingFields) {
@@ -73,7 +74,6 @@ class CollectionValidator extends ConstraintValidator
                     ->atPath('['.$field.']')
                     ->setParameter('{{ field }}', $this->formatValue($field))
                     ->setInvalidValue(null)
-                    ->setCode(Collection::MISSING_FIELD_ERROR)
                     ->addViolation();
             }
         }
@@ -85,7 +85,6 @@ class CollectionValidator extends ConstraintValidator
                         ->atPath('['.$field.']')
                         ->setParameter('{{ field }}', $this->formatValue($field))
                         ->setInvalidValue($fieldValue)
-                        ->setCode(Collection::NO_SUCH_FIELD_ERROR)
                         ->addViolation();
                 }
             }

@@ -15,9 +15,8 @@ use Symfony\Component\Form\FormTypeGuesserInterface;
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
 use Symfony\Component\Form\Guess\ValueGuess;
-use Symfony\Component\Validator\Constraint;
-use Symfony\Component\Validator\Mapping\ClassMetadataInterface;
 use Symfony\Component\Validator\MetadataFactoryInterface;
+use Symfony\Component\Validator\Constraint;
 
 class ValidatorTypeGuesser implements FormTypeGuesserInterface
 {
@@ -265,8 +264,8 @@ class ValidatorTypeGuesser implements FormTypeGuesserInterface
         $guesses = array();
         $classMetadata = $this->metadataFactory->getMetadataFor($class);
 
-        if ($classMetadata instanceof ClassMetadataInterface && $classMetadata->hasPropertyMetadata($property)) {
-            $memberMetadatas = $classMetadata->getPropertyMetadata($property);
+        if ($classMetadata->hasMemberMetadatas($property)) {
+            $memberMetadatas = $classMetadata->getMemberMetadatas($property);
 
             foreach ($memberMetadatas as $memberMetadata) {
                 $constraints = $memberMetadata->getConstraints();

@@ -23,14 +23,11 @@ class ProjectServiceContainer extends Container
      */
     public function __construct()
     {
+        $this->parameters = $this->getDefaultParameters();
+
         $this->services =
         $this->scopedServices =
         $this->scopeStacks = array();
-        $this->parameters = array(
-            'baz_class' => 'BazClass',
-            'foo_class' => 'Bar\\FooClass',
-            'foo' => 'bar',
-        );
 
         $this->set('service_container', $this);
 
@@ -49,23 +46,13 @@ class ProjectServiceContainer extends Container
             'foo_bar' => 'getFooBarService',
             'foo_with_inline' => 'getFooWithInlineService',
             'method_call1' => 'getMethodCall1Service',
-            'new_factory_service' => 'getNewFactoryServiceService',
             'request' => 'getRequestService',
-            'service_from_static_method' => 'getServiceFromStaticMethodService',
         );
         $this->aliases = array(
             'alias_for_alias' => 'foo',
             'alias_for_foo' => 'foo',
             'decorated' => 'decorator_service_with_name',
         );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function compile()
-    {
-        throw new LogicException('You cannot compile a dumped frozen container.');
     }
 
     /**
@@ -275,26 +262,6 @@ class ProjectServiceContainer extends Container
     }
 
     /**
-     * Gets the 'new_factory_service' service.
-     *
-     * This service is shared.
-     * This method always returns the same instance of the service.
-     *
-     * @return \FooBarBaz A FooBarBaz instance.
-     */
-    protected function getNewFactoryServiceService()
-    {
-        $a = new \FactoryClass();
-        $a->foo = 'bar';
-
-        $this->services['new_factory_service'] = $instance = $a->getInstance();
-
-        $instance->foo = 'bar';
-
-        return $instance;
-    }
-
-    /**
      * Gets the 'request' service.
      *
      * This service is shared.
@@ -305,19 +272,6 @@ class ProjectServiceContainer extends Container
     protected function getRequestService()
     {
         throw new RuntimeException('You have requested a synthetic service ("request"). The DIC does not know how to construct this service.');
-    }
-
-    /**
-     * Gets the 'service_from_static_method' service.
-     *
-     * This service is shared.
-     * This method always returns the same instance of the service.
-     *
-     * @return \Bar\FooClass A Bar\FooClass instance.
-     */
-    protected function getServiceFromStaticMethodService()
-    {
-        return $this->services['service_from_static_method'] = \Bar\FooClass::getInstance();
     }
 
     /**
@@ -372,5 +326,18 @@ class ProjectServiceContainer extends Container
         }
 
         return $this->parameterBag;
+    }
+    /**
+     * Gets the default parameters.
+     *
+     * @return array An array of the default parameters
+     */
+    protected function getDefaultParameters()
+    {
+        return array(
+            'baz_class' => 'BazClass',
+            'foo_class' => 'Bar\\FooClass',
+            'foo' => 'bar',
+        );
     }
 }

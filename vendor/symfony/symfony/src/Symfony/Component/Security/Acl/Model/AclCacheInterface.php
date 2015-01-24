@@ -37,8 +37,7 @@ interface AclCacheInterface
     /**
      * Retrieves an ACL for the given object identity primary key from the cache
      *
-     * @param int $primaryKey
-     *
+     * @param int     $primaryKey
      * @return AclInterface
      */
     public function getFromCacheById($primaryKey);
@@ -47,7 +46,6 @@ interface AclCacheInterface
      * Retrieves an ACL for the given object identity from the cache
      *
      * @param ObjectIdentityInterface $oid
-     *
      * @return AclInterface
      */
     public function getFromCacheByIdentity(ObjectIdentityInterface $oid);

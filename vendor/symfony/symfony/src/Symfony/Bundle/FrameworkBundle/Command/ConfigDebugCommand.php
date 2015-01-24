@@ -30,10 +30,7 @@ class ConfigDebugCommand extends AbstractConfigCommand
     protected function configure()
     {
         $this
-            ->setName('debug:config')
-            ->setAliases(array(
-                'config:debug',
-            ))
+            ->setName('config:debug')
             ->setDefinition(array(
                 new InputArgument('name', InputArgument::OPTIONAL, 'The Bundle name or the extension alias'),
             ))

@@ -90,8 +90,7 @@ EOT
             }
         }
 
-        // validate the namespace, but don't require a vendor namespace
-        $namespace = Validators::validateBundleNamespace($input->getOption('namespace'), false);
+        $namespace = Validators::validateBundleNamespace($input->getOption('namespace'));
         if (!$bundle = $input->getOption('bundle-name')) {
             $bundle = strtr($namespace, array('\\' => ''));
         }
@@ -137,8 +136,7 @@ EOT
         // namespace
         $namespace = null;
         try {
-            // validate the namespace option (if any) but don't require the vendor namespace
-            $namespace = $input->getOption('namespace') ? Validators::validateBundleNamespace($input->getOption('namespace'), false) : null;
+            $namespace = $input->getOption('namespace') ? Validators::validateBundleNamespace($input->getOption('namespace')) : null;
         } catch (\Exception $error) {
             $output->writeln($dialog->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error'));
         }
@@ -162,41 +160,7 @@ EOT
                 '',
             ));
 
-            $acceptedNamespace = false;
-            while (!$acceptedNamespace) {
-                $namespace = $dialog->askAndValidate(
-                    $output,
-                    $dialog->getQuestion('Bundle namespace', $input->getOption('namespace')),
-                    function ($namespace) use ($dialog, $output) {
-                        // validate it, but don't require the vendor namespace
-                        return Validators::validateBundleNamespace($namespace, false);
-                    },
-                    false,
-                    $input->getOption('namespace')
-                );
-
-                // mark as accepted, unless they want to try again below
-                $acceptedNamespace = true;
-
-                // see if there is a vendor namespace. If not, this could be accidental
-                if (false === strpos($namespace, '\\')) {
-                    // language is (almost) duplicated in Validators
-                    $msg = array();
-                    $msg[] = '';
-                    $msg[] = sprintf('The namespace sometimes contain a vendor namespace (e.g. <info>VendorName/BlogBundle</info> instead of simply <info>%s</info>).', $namespace, $namespace);
-                    $msg[] = 'If you\'ve *did* type a vendor namespace, try using a forward slash <info>/</info> (<info>Acme/BlogBundle</info>)?';
-                    $msg[] = '';
-                    $output->writeln($msg);
-
-                    $acceptedNamespace = $dialog->askConfirmation(
-                        $output,
-                        $dialog->getQuestion(
-                            sprintf('Keep <comment>%s</comment> as the bundle namespace (choose no to try again)?', $namespace),
-                            'yes'
-                        )
-                    );
-                }
-            }
+            $namespace = $dialog->askAndValidate($output, $dialog->getQuestion('Bundle namespace', $input->getOption('namespace')), array('Sensio\Bundle\GeneratorBundle\Command\Validators', 'validateBundleNamespace'), false, $input->getOption('namespace'));
             $input->setOption('namespace', $namespace);
         }
 
@@ -339,7 +303,7 @@ EOT
         $output->write('Importing the bundle routing resource: ');
         $routing = new RoutingManipulator($this->getContainer()->getParameter('kernel.root_dir').'/config/routing.yml');
         try {
-            $ret = $auto ? $routing->addResource($bundle, $format) : true;
+            $ret = $auto ? $routing->addResource($bundle, $format) : false;
             if (!$ret) {
                 if ('annotation' === $format) {
                     $help = sprintf("        <comment>resource: \"@%s/Controller/\"</comment>\n        <comment>type:     annotation</comment>\n", $bundle);

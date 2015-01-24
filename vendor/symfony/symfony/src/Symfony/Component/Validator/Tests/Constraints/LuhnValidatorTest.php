@@ -78,7 +78,7 @@ class LuhnValidatorTest extends AbstractConstraintValidatorTest
     /**
      * @dataProvider getInvalidNumbers
      */
-    public function testInvalidNumbers($number, $code)
+    public function testInvalidNumbers($number)
     {
         $constraint = new Luhn(array(
             'message' => 'myMessage',
@@ -88,18 +88,17 @@ class LuhnValidatorTest extends AbstractConstraintValidatorTest
 
         $this->buildViolation('myMessage')
             ->setParameter('{{ value }}', '"'.$number.'"')
-            ->setCode($code)
             ->assertRaised();
     }
 
     public function getInvalidNumbers()
     {
         return array(
-            array('1234567812345678', Luhn::CHECKSUM_FAILED_ERROR),
-            array('4222222222222222', Luhn::CHECKSUM_FAILED_ERROR),
-            array('0000000000000000', Luhn::CHECKSUM_FAILED_ERROR),
-            array('000000!000000000', Luhn::INVALID_CHARACTERS_ERROR),
-            array('42-22222222222222', Luhn::INVALID_CHARACTERS_ERROR),
+            array('1234567812345678'),
+            array('4222222222222222'),
+            array('0000000000000000'),
+            array('000000!000000000'),
+            array('42-22222222222222'),
         );
     }
 

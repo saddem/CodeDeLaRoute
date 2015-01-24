@@ -38,10 +38,7 @@ class TranslationDebugCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('debug:translation')
-            ->setAliases(array(
-                'translation:debug',
-            ))
+            ->setName('translation:debug')
             ->setDefinition(array(
                 new InputArgument('locale', InputArgument::REQUIRED, 'The locale'),
                 new InputArgument('bundle', InputArgument::REQUIRED, 'The bundle name'),

@@ -31,7 +31,7 @@ abstract class GeneratorCommand extends ContainerAwareCommand
         $this->generator = $generator;
     }
 
-    abstract protected function createGenerator();
+    protected abstract function createGenerator();
 
     protected function getGenerator(BundleInterface $bundle = null)
     {

@@ -19,7 +19,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Console\Question\ChoiceQuestion;
 
 /**
  * A console command for retrieving information about services.
@@ -39,10 +38,7 @@ class ContainerDebugCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('debug:container')
-            ->setAliases(array(
-                'container:debug',
-            ))
+            ->setName('container:debug')
             ->setDefinition(array(
                 new InputArgument('name', InputArgument::OPTIONAL, 'A service name (foo)'),
                 new InputOption('show-private', null, InputOption::VALUE_NONE, 'Used to show public *and* private services'),
@@ -110,7 +106,6 @@ EOF
             $options = array('tag' => $tag, 'show_private' => $input->getOption('show-private'));
         } elseif ($name = $input->getArgument('name')) {
             $object = $this->getContainerBuilder();
-            $name = $this->findProperServiceName($input, $output, $object, $name);
             $options = array('id' => $name);
         } else {
             $object = $this->getContainerBuilder();
@@ -121,10 +116,6 @@ EOF
         $options['format'] = $input->getOption('format');
         $options['raw_text'] = $input->getOption('raw');
         $helper->describe($output, $object, $options);
-
-        if (!$input->getArgument('name') && $input->isInteractive()) {
-            $output->writeln('To search for a service, re-run this command with a search term. <comment>container:debug log</comment>');
-        }
     }
 
     /**
@@ -176,37 +167,5 @@ EOF
         $loader->load($cachedFile);
 
         return $container;
-    }
-
-    private function findProperServiceName(InputInterface $input, OutputInterface $output, ContainerBuilder $builder, $name)
-    {
-        if ($builder->has($name) || !$input->isInteractive()) {
-            return $name;
-        }
-
-        $matchingServices = $this->findServiceIdsContaining($builder, $name);
-        if (empty($matchingServices)) {
-            throw new \InvalidArgumentException(sprintf('No services found that match "%s".', $name));
-        }
-
-        $question = new ChoiceQuestion('Choose a number for more information on the service', $matchingServices);
-        $question->setErrorMessage('Service %s is invalid.');
-
-        return $this->getHelper('question')->ask($input, $output, $question);
-    }
-
-    private function findServiceIdsContaining(ContainerBuilder $builder, $name)
-    {
-        $serviceIds = $builder->getServiceIds();
-        $foundServiceIds = array();
-        $name = strtolower($name);
-        foreach ($serviceIds as $serviceId) {
-            if (false === strpos($serviceId, $name)) {
-                continue;
-            }
-            $foundServiceIds[] = $serviceId;
-        }
-
-        return $foundServiceIds;
     }
 }

@@ -1,0 +1,7 @@
+saddem_code_route_homepage:
+    path:  /
+    defaults: { _controller: SaddemCodeRouteBundle:Default:index }
+    
+saddem_code_route_contact:
+    path:   /contact
+    defaults: { _controller: SaddemCodeRouteBundle:Contact:send }

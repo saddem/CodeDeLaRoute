@@ -13,7 +13,6 @@ namespace Symfony\Component\Validator\Context;
 
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\ClassBasedInterface;
-use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Exception\BadMethodCallException;
@@ -89,7 +88,7 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * The current validation metadata.
      *
-     * @var MetadataInterface|null
+     * @var MetadataInterface
      */
     private $metadata;
 
@@ -99,13 +98,6 @@ class ExecutionContext implements ExecutionContextInterface
      * @var string|null
      */
     private $group;
-
-    /**
-     * The currently validated constraint.
-     *
-     * @var Constraint|null
-     */
-    private $constraint;
 
     /**
      * Stores which objects have been validated in which group.
@@ -173,14 +165,6 @@ class ExecutionContext implements ExecutionContextInterface
     /**
      * {@inheritdoc}
      */
-    public function setConstraint(Constraint $constraint)
-    {
-        $this->constraint = $constraint;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function addViolation($message, array $parameters = array(), $invalidValue = null, $plural = null, $code = null)
     {
         // The parameters $invalidValue and following are ignored by the new
@@ -202,8 +186,7 @@ class ExecutionContext implements ExecutionContextInterface
             $this->propertyPath,
             $this->value,
             null,
-            null,
-            $this->constraint
+            null
         ));
     }
 
@@ -214,7 +197,6 @@ class ExecutionContext implements ExecutionContextInterface
     {
         return new ConstraintViolationBuilder(
             $this->violations,
-            $this->constraint,
             $message,
             $parameters,
             $this->root,

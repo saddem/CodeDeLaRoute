@@ -452,7 +452,6 @@ class MutableAclProviderTest extends \PHPUnit_Framework_TestCase
      *
      * @param AclProvider $provider
      * @param array       $data
-     *
      * @throws \InvalidArgumentException
      * @throws \Exception
      */

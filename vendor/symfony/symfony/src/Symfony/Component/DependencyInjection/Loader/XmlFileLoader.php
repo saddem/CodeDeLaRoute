@@ -32,11 +32,14 @@ class XmlFileLoader extends FileLoader
     const NS = 'http://symfony.com/schema/dic/services';
 
     /**
-     * {@inheritdoc}
+     * Loads an XML file.
+     *
+     * @param mixed  $file The resource
+     * @param string $type The resource type
      */
-    public function load($resource, $type = null)
+    public function load($file, $type = null)
     {
-        $path = $this->locator->locate($resource);
+        $path = $this->locator->locate($file);
 
         $xml = $this->parseFileToDOM($path);
 
@@ -59,7 +62,12 @@ class XmlFileLoader extends FileLoader
     }
 
     /**
-     * {@inheritdoc}
+     * Returns true if this class supports the given resource.
+     *
+     * @param mixed  $resource A resource
+     * @param string $type     The resource type
+     *
+     * @return bool    true if this class supports the given resource, false otherwise
      */
     public function supports($resource, $type = null)
     {
@@ -158,21 +166,6 @@ class XmlFileLoader extends FileLoader
 
         $definition->setArguments($this->getArgumentsAsPhp($service, 'argument'));
         $definition->setProperties($this->getArgumentsAsPhp($service, 'property'));
-
-        if ($factories = $this->getChildren($service, 'factory')) {
-            $factory = $factories[0];
-            if ($function = $factory->getAttribute('function')) {
-                $definition->setFactory($function);
-            } else {
-                if ($childService = $factory->getAttribute('service')) {
-                    $class = new Reference($childService, ContainerInterface::EXCEPTION_ON_INVALID_REFERENCE, false);
-                } else {
-                    $class = $factory->getAttribute('class');
-                }
-
-                $definition->setFactory(array($class, $factory->getAttribute('method')));
-            }
-        }
 
         if ($configurators = $this->getChildren($service, 'configurator')) {
             $configurator = $configurators[0];

@@ -11,7 +11,12 @@
 
 namespace Symfony\Component\Validator\Violation;
 
+use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\ExecutionContextInterface;
+use Symfony\Component\Validator\Util\PropertyPath;
 
 /**
  * Backwards-compatible implementation of {@link ConstraintViolationBuilderInterface}.
@@ -140,16 +145,6 @@ class LegacyConstraintViolationBuilder implements ConstraintViolationBuilderInte
     public function setCode($code)
     {
         $this->code = $code;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setCause($cause)
-    {
-        // do nothing - we can't save the cause through the old API
 
         return $this;
     }

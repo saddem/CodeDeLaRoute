@@ -49,10 +49,7 @@ class RouterDebugCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('debug:router')
-            ->setAliases(array(
-                'router:debug',
-            ))
+            ->setName('router:debug')
             ->setDefinition(array(
                 new InputArgument('name', InputArgument::OPTIONAL, 'A route name'),
                 new InputOption('show-controllers', null,  InputOption::VALUE_NONE, 'Show assigned controllers in overview'),
@@ -87,9 +84,9 @@ EOF
             }
             $this->convertController($route);
             $helper->describe($output, $route, array(
-                'format' => $input->getOption('format'),
+                'format'   => $input->getOption('format'),
                 'raw_text' => $input->getOption('raw'),
-                'name' => $name,
+                'name'     => $name,
             ));
         } else {
             $routes = $this->getContainer()->get('router')->getRouteCollection();
@@ -99,8 +96,8 @@ EOF
             }
 
             $helper->describe($output, $routes, array(
-                'format' => $input->getOption('format'),
-                'raw_text' => $input->getOption('raw'),
+                'format'           => $input->getOption('format'),
+                'raw_text'         => $input->getOption('raw'),
                 'show_controllers' => $input->getOption('show-controllers'),
             ));
         }

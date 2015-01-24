@@ -41,17 +41,18 @@ class AllValidator extends ConstraintValidator
         }
 
         $context = $this->context;
+        $group = $context->getGroup();
 
         if ($context instanceof ExecutionContextInterface) {
             $validator = $context->getValidator()->inContext($context);
 
             foreach ($value as $key => $element) {
-                $validator->atPath('['.$key.']')->validate($element, $constraint->constraints);
+                $validator->atPath('['.$key.']')->validate($element, $constraint->constraints, $group);
             }
         } else {
             // 2.4 API
             foreach ($value as $key => $element) {
-                $context->validateValue($element, $constraint->constraints, '['.$key.']');
+                $context->validateValue($element, $constraint->constraints, '['.$key.']', $group);
             }
         }
     }

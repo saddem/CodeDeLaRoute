@@ -81,7 +81,6 @@ class EmailValidatorTest extends AbstractConstraintValidatorTest
 
         $this->buildViolation('myMessage')
             ->setParameter('{{ value }}', '"'.$email.'"')
-            ->setCode(Email::INVALID_FORMAT_ERROR)
             ->assertRaised();
     }
 

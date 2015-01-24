@@ -12,21 +12,81 @@
 namespace Symfony\Component\OptionsResolver\Tests;
 
 use Symfony\Component\OptionsResolver\Options;
-use Symfony\Component\OptionsResolver\OptionsResolver;
 
-/**
- * @deprecated Deprecated since Symfony 2.6, to be removed in Symfony 3.0.
- */
 class OptionsTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var OptionsResolver
+     * @var Options
      */
     private $options;
 
     protected function setUp()
     {
-        $this->options = new OptionsResolver();
+        $this->options = new Options();
+    }
+
+    public function testArrayAccess()
+    {
+        $this->assertFalse(isset($this->options['foo']));
+        $this->assertFalse(isset($this->options['bar']));
+
+        $this->options['foo'] = 0;
+        $this->options['bar'] = 1;
+
+        $this->assertTrue(isset($this->options['foo']));
+        $this->assertTrue(isset($this->options['bar']));
+
+        unset($this->options['bar']);
+
+        $this->assertTrue(isset($this->options['foo']));
+        $this->assertFalse(isset($this->options['bar']));
+        $this->assertEquals(0, $this->options['foo']);
+    }
+
+    public function testCountable()
+    {
+        $this->options->set('foo', 0);
+        $this->options->set('bar', 1);
+
+        $this->assertCount(2, $this->options);
+    }
+
+    /**
+     * @expectedException \OutOfBoundsException
+     */
+    public function testGetNonExisting()
+    {
+        $this->options->get('foo');
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\OptionDefinitionException
+     */
+    public function testSetNotSupportedAfterGet()
+    {
+        $this->options->set('foo', 'bar');
+        $this->options->get('foo');
+        $this->options->set('foo', 'baz');
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\OptionDefinitionException
+     */
+    public function testRemoveNotSupportedAfterGet()
+    {
+        $this->options->set('foo', 'bar');
+        $this->options->get('foo');
+        $this->options->remove('foo');
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\OptionDefinitionException
+     */
+    public function testSetNormalizerNotSupportedAfterGet()
+    {
+        $this->options->set('foo', 'bar');
+        $this->options->get('foo');
+        $this->options->setNormalizer('foo', function () {});
     }
 
     public function testSetLazyOption()
@@ -37,7 +97,25 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
            return 'dynamic';
         });
 
-        $this->assertEquals(array('foo' => 'dynamic'), $this->options->resolve());
+        $this->assertEquals('dynamic', $this->options->get('foo'));
+    }
+
+    public function testSetDiscardsPreviousValue()
+    {
+        $test = $this;
+
+        // defined by superclass
+        $this->options->set('foo', 'bar');
+
+        // defined by subclass
+        $this->options->set('foo', function (Options $options, $previousValue) use ($test) {
+            /* @var \PHPUnit_Framework_TestCase $test */
+            $test->assertNull($previousValue);
+
+            return 'dynamic';
+        });
+
+        $this->assertEquals('dynamic', $this->options->get('foo'));
     }
 
     public function testOverloadKeepsPreviousValue()
@@ -55,7 +133,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'dynamic';
         });
 
-        $this->assertEquals(array('foo' => 'dynamic'), $this->options->resolve());
+        $this->assertEquals('dynamic', $this->options->get('foo'));
     }
 
     public function testPreviousValueIsEvaluatedIfLazy()
@@ -75,7 +153,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'dynamic';
         });
 
-        $this->assertEquals(array('foo' => 'dynamic'), $this->options->resolve());
+        $this->assertEquals('dynamic', $this->options->get('foo'));
     }
 
     public function testPreviousValueIsNotEvaluatedIfNoSecondArgument()
@@ -92,7 +170,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'dynamic';
         });
 
-        $this->assertEquals(array('foo' => 'dynamic'), $this->options->resolve());
+        $this->assertEquals('dynamic', $this->options->get('foo'));
     }
 
     public function testLazyOptionCanAccessOtherOptions()
@@ -108,7 +186,8 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'dynamic';
         });
 
-        $this->assertEquals(array('foo' => 'bar', 'bam' => 'dynamic'), $this->options->resolve());
+        $this->assertEquals('bar', $this->options->get('foo'));
+        $this->assertEquals('dynamic', $this->options->get('bam'));
     }
 
     public function testLazyOptionCanAccessOtherLazyOptions()
@@ -126,7 +205,8 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'dynamic';
         });
 
-        $this->assertEquals(array('foo' => 'bar', 'bam' => 'dynamic'), $this->options->resolve());
+        $this->assertEquals('bar', $this->options->get('foo'));
+        $this->assertEquals('dynamic', $this->options->get('bam'));
     }
 
     public function testNormalizer()
@@ -137,7 +217,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'normalized';
         });
 
-        $this->assertEquals(array('foo' => 'normalized'), $this->options->resolve());
+        $this->assertEquals('normalized', $this->options->get('foo'));
     }
 
     public function testNormalizerReceivesUnnormalizedValue()
@@ -148,7 +228,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'normalized['.$value.']';
         });
 
-        $this->assertEquals(array('foo' => 'normalized[bar]'), $this->options->resolve());
+        $this->assertEquals('normalized[bar]', $this->options->get('foo'));
     }
 
     public function testNormalizerCanAccessOtherOptions()
@@ -165,7 +245,8 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'normalized';
         });
 
-        $this->assertEquals(array('foo' => 'bar', 'bam' => 'normalized'), $this->options->resolve());
+        $this->assertEquals('bar', $this->options->get('foo'));
+        $this->assertEquals('normalized', $this->options->get('bam'));
     }
 
     public function testNormalizerCanAccessOtherLazyOptions()
@@ -184,7 +265,8 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'normalized';
         });
 
-        $this->assertEquals(array('foo' => 'bar', 'bam' => 'normalized'), $this->options->resolve());
+        $this->assertEquals('bar', $this->options->get('foo'));
+        $this->assertEquals('normalized', $this->options->get('bam'));
     }
 
     /**
@@ -200,7 +282,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             $options->get('foo');
         });
 
-        $this->options->resolve();
+        $this->options->get('foo');
     }
 
     /**
@@ -219,7 +301,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             $options->get('foo');
         });
 
-        $this->options->resolve();
+        $this->options->get('foo');
     }
 
     /**
@@ -236,7 +318,50 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             $options->get('foo');
         });
 
-        $this->options->resolve();
+        $this->options->get('foo');
+    }
+
+    public function testAllInvokesEachLazyOptionOnlyOnce()
+    {
+        $test = $this;
+        $i = 1;
+
+        $this->options->set('foo', function (Options $options) use ($test, &$i) {
+            $test->assertSame(1, $i);
+            ++$i;
+
+            // Implicitly invoke lazy option for "bam"
+            $options->get('bam');
+        });
+        $this->options->set('bam', function (Options $options) use ($test, &$i) {
+            $test->assertSame(2, $i);
+            ++$i;
+        });
+
+        $this->options->all();
+    }
+
+    public function testAllInvokesEachNormalizerOnlyOnce()
+    {
+        $test = $this;
+        $i = 1;
+
+        $this->options->set('foo', 'bar');
+        $this->options->set('bam', 'baz');
+
+        $this->options->setNormalizer('foo', function (Options $options) use ($test, &$i) {
+            $test->assertSame(1, $i);
+            ++$i;
+
+            // Implicitly invoke normalizer for "bam"
+            $options->get('bam');
+        });
+        $this->options->setNormalizer('bam', function (Options $options) use ($test, &$i) {
+            $test->assertSame(2, $i);
+            ++$i;
+        });
+
+        $this->options->all();
     }
 
     public function testReplaceClearsAndSets()
@@ -253,7 +378,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(
             'two' => '2',
             'three' => '3',
-        ), $this->options->resolve());
+        ), $this->options->all());
     }
 
     public function testClearRemovesAllOptions()
@@ -263,7 +388,45 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
 
         $this->options->clear();
 
-        $this->assertEmpty($this->options->resolve());
+        $this->assertEmpty($this->options->all());
+    }
+
+    /**
+     * @covers Symfony\Component\OptionsResolver\Options::replace
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\OptionDefinitionException
+     */
+    public function testCannotReplaceAfterOptionWasRead()
+    {
+        $this->options->set('one', 1);
+        $this->options->all();
+
+        $this->options->replace(array(
+            'two' => '2',
+        ));
+    }
+
+    /**
+     * @covers Symfony\Component\OptionsResolver\Options::overload
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\OptionDefinitionException
+     */
+    public function testCannotOverloadAfterOptionWasRead()
+    {
+        $this->options->set('one', 1);
+        $this->options->all();
+
+        $this->options->overload('one', 2);
+    }
+
+    /**
+     * @covers Symfony\Component\OptionsResolver\Options::clear
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\OptionDefinitionException
+     */
+    public function testCannotClearAfterOptionWasRead()
+    {
+        $this->options->set('one', 1);
+        $this->options->all();
+
+        $this->options->clear();
     }
 
     public function testOverloadCannotBeEvaluatedLazilyWithoutExpectedClosureParams()
@@ -274,8 +437,8 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'test';
         });
 
-        $resolved = $this->options->resolve();
-        $this->assertTrue(is_callable($resolved['foo']));
+        $this->assertNotEquals('test', $this->options->get('foo'));
+        $this->assertTrue(is_callable($this->options->get('foo')));
     }
 
     public function testOverloadCannotBeEvaluatedLazilyWithoutFirstParamTypeHint()
@@ -286,8 +449,24 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
             return 'test';
         });
 
-        $resolved = $this->options->resolve();
-        $this->assertTrue(is_callable($resolved['foo']));
+        $this->assertNotEquals('test', $this->options->get('foo'));
+        $this->assertTrue(is_callable($this->options->get('foo')));
+    }
+
+    public function testOptionsIteration()
+    {
+        $this->options->set('foo', 'bar');
+        $this->options->set('foo1', 'bar1');
+        $expectedResult = array('foo' => 'bar', 'foo1' => 'bar1');
+
+        $this->assertEquals($expectedResult, iterator_to_array($this->options, true));
+    }
+
+    public function testHasWithNullValue()
+    {
+        $this->options->set('foo', null);
+
+        $this->assertTrue($this->options->has('foo'));
     }
 
     public function testRemoveOptionAndNormalizer()
@@ -302,7 +481,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
         });
 
         $this->options->remove('foo2');
-        $this->assertEquals(array('foo1' => ''), $this->options->resolve());
+        $this->assertEquals(array('foo1' => ''), $this->options->all());
     }
 
     public function testReplaceOptionAndNormalizer()
@@ -317,7 +496,7 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
         });
 
         $this->options->replace(array('foo1' => 'new'));
-        $this->assertEquals(array('foo1' => 'new'), $this->options->resolve());
+        $this->assertEquals(array('foo1' => 'new'), $this->options->all());
     }
 
     public function testClearOptionAndNormalizer()
@@ -332,6 +511,18 @@ class OptionsTest extends \PHPUnit_Framework_TestCase
         });
 
         $this->options->clear();
-        $this->assertEmpty($this->options->resolve());
+        $this->assertEmpty($this->options->all());
+    }
+
+    public function testNormalizerWithoutCorrespondingOption()
+    {
+        $test = $this;
+
+        $this->options->setNormalizer('foo', function (Options $options, $previousValue) use ($test) {
+            $test->assertNull($previousValue);
+
+            return '';
+        });
+        $this->assertEquals(array('foo' => ''), $this->options->all());
     }
 }

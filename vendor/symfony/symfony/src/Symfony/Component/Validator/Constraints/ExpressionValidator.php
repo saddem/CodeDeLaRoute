@@ -60,6 +60,10 @@ class ExpressionValidator extends ConstraintValidator
             throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Expression');
         }
 
+        if (null === $value || '' === $value) {
+            return;
+        }
+
         $variables = array();
 
         // Symfony 2.5+

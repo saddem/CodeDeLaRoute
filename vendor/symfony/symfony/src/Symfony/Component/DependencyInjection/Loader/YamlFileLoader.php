@@ -33,11 +33,14 @@ class YamlFileLoader extends FileLoader
     private $yamlParser;
 
     /**
-     * {@inheritdoc}
+     * Loads a Yaml file.
+     *
+     * @param mixed  $file The resource
+     * @param string $type The resource type
      */
-    public function load($resource, $type = null)
+    public function load($file, $type = null)
     {
-        $path = $this->locator->locate($resource);
+        $path = $this->locator->locate($file);
 
         $content = $this->loadFile($path);
 
@@ -54,7 +57,7 @@ class YamlFileLoader extends FileLoader
         // parameters
         if (isset($content['parameters'])) {
             if (!is_array($content['parameters'])) {
-                throw new InvalidArgumentException(sprintf('The "parameters" key should contain an array in %s. Check your YAML syntax.', $resource));
+                throw new InvalidArgumentException(sprintf('The "parameters" key should contain an array in %s. Check your YAML syntax.', $file));
             }
 
             foreach ($content['parameters'] as $key => $value) {
@@ -66,11 +69,16 @@ class YamlFileLoader extends FileLoader
         $this->loadFromExtensions($content);
 
         // services
-        $this->parseDefinitions($content, $resource);
+        $this->parseDefinitions($content, $file);
     }
 
     /**
-     * {@inheritdoc}
+     * Returns true if this class supports the given resource.
+     *
+     * @param mixed  $resource A resource
+     * @param string $type     The resource type
+     *
+     * @return bool    true if this class supports the given resource, false otherwise
      */
     public function supports($resource, $type = null)
     {
@@ -184,19 +192,6 @@ class YamlFileLoader extends FileLoader
 
         if (isset($service['abstract'])) {
             $definition->setAbstract($service['abstract']);
-        }
-
-        if (isset($service['factory'])) {
-            if (is_string($service['factory'])) {
-                if (strpos($service['factory'], ':') !== false && strpos($service['factory'], '::') === false) {
-                    $parts = explode(':', $service['factory']);
-                    $definition->setFactory(array($this->resolveServices('@'.$parts[0]), $parts[1]));
-                } else {
-                    $definition->setFactory($service['factory']);
-                }
-            } else {
-                $definition->setFactory(array($this->resolveServices($service['factory'][0]), $service['factory'][1]));
-            }
         }
 
         if (isset($service['factory_class'])) {

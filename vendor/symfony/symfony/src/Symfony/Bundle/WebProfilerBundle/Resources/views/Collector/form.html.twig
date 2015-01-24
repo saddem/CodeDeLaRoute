@@ -420,7 +420,7 @@
             {% else %}
                 <div class="toggle-icon empty"></div>
             {% endif %}
-            {{ name|default('(no name)') }} {% if data.type is not empty %}[<abbr title="{{ data.type_class }}">{{ data.type }}</abbr>]{% endif %}
+            {{ name }}
             {% if data.errors is defined and data.errors|length > 0 %}
             <div class="badge-error">{{ data.errors|length }}</div>
             {% endif %}
@@ -437,9 +437,9 @@
 {% endmacro %}
 
 {% macro form_tree_details(name, data, forms_by_hash) %}
-    <div class="tree-details" {% if data.id is defined %} id="{{ data.id }}-details"{% endif %}>
+    <div class="tree-details" id="{{ data.id }}-details">
         <h2>
-            {{ name|default('(no name)') }}
+            {{ name }}
             {% if data.type_class is defined %}
             <span class="form-type">[<abbr title="{{ data.type_class }}">{{ data.type }}</abbr>]</span>
             {% endif %}
@@ -473,28 +473,14 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% for trace in error.trace %}
-                            {% if not loop.first %}
-                                <br/>Caused by:<br/><br/>
-                            {% endif %}
-                            {% if trace.root is defined %}
-                                <strong>{{ trace.class }}</strong><br/>
-                                <pre>
-                                    {{- trace.root -}}
-                                    {%- if trace.path is not empty -%}
-                                        {%- if trace.path|first != '[' %}.{% endif -%}
-                                        {{- trace.path -}}
-                                    {%- endif %} = {{ trace.value -}}
-                                </pre>
-                            {% elseif trace.message is defined %}
-                                <strong>{{ trace.class }}</strong><br/>
-                                <pre>{{ trace.message }}</pre>
-                            {% else %}
-                                <pre>{{ trace }}</pre>
-                            {% endif %}
-                        {% else %}
+                        {% if error.cause is empty %}
                             <em>Unknown.</em>
-                        {% endfor %}
+                        {% elseif error.cause.root is defined %}
+                            <strong>Constraint Violation</strong><br/>
+                            <pre>{{ error.cause.root }}{% if error.cause.path is not empty %}{% if error.cause.path|first != '[' %}.{% endif %}{{ error.cause.path }}{% endif %} = {{ error.cause.value }}</pre>
+                        {% else %}
+                            <pre>{{ error.cause }}</pre>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

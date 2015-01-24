@@ -51,7 +51,6 @@ final class UserSecurityIdentity implements SecurityIdentityInterface
      * Creates a user security identity from a UserInterface
      *
      * @param UserInterface $user
-     *
      * @return UserSecurityIdentity
      */
     public static function fromAccount(UserInterface $user)
@@ -63,7 +62,6 @@ final class UserSecurityIdentity implements SecurityIdentityInterface
      * Creates a user security identity from a TokenInterface
      *
      * @param TokenInterface $token
-     *
      * @return UserSecurityIdentity
      */
     public static function fromToken(TokenInterface $token)
